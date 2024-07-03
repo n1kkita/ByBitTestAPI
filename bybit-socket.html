@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Sensor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        #main-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px;
+        }
+
+        .crypto-card {
+            background-color: rgb(211 211 211 / 11%);
+            margin: 10px;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Добавление тени */
+        }
+
+        .crypto-card h2,
+        .crypto-card h3,
+        .crypto-card h4 {
+            margin: 0;
+        }
+
+        .crypto-card .price-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .price24hPcnt {
+            padding: 2px 10px;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .crypto-card {
+                width: calc(100% - 20px);
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<h1>Crypto Sensor</h1>
+<div id="main-container">
+</div>
+<script>
+    // Создание WebSocket соединения
+    const socket = new WebSocket('wss://stream.bybit.com/v5/public/spot');
+
+    const names = ["BTC", "NOT", "TON", "SOL", "PEPE", "DOGE", "ETH", "ZEX"];
+
+    socket.onopen = function(event) {
+        console.log('WebSocket соединение установлено.');
+
+        names.forEach(name => {
+            // Подписка на данные о криптовалюте
+            const message = {
+                op: "subscribe",
+                args: [`tickers.${name}USDT`]
+            };
+            let container = document.createElement("div");
+            container.className = "crypto-card";
+            container.innerHTML =
+                `<div id="tickers.${name}USDT">
+                 <input type="hidden" id="name">
+                 <h2 id="main-label">${name}/USDT</h2>
+                 <h3 class="maxprice24h">Max for 24h: price</h3>
+                 <div class="price-container">
+                   <h3 id="second-label">${name}/USDT:</h3>
+                   <h3 class="price"></h3>
+                   <h4 class="price24hPcnt"></h4>
+                 </div>
+                 </div>`;
+            document.getElementById("main-container").appendChild(container);
+            socket.send(JSON.stringify(message));
+        });
+    };
+
+    // Обработчик получения сообщения
+    socket.onmessage = function(event) {
+        const response = JSON.parse(event.data);
+        let topic = response.topic;
+
+        let container = document.getElementById(topic);
+        let maxprice24hElement = container.querySelector(".maxprice24h");
+        let priceElement = container.querySelector(".price");
+        let price24hPcntElement = container.querySelector(".price24hPcnt");
+
+        let lastPrice = response.data.lastPrice;
+        let highPrice24h = response.data.highPrice24h;
+        let price24hPcnt = parseFloat(response.data.price24hPcnt).toFixed(2);
+
+        if(price24hPcnt < 0) {
+            price24hPcntElement.style.background = "rgb(255,0,0)";
+        } else if(price24hPcnt > 0) {
+            price24hPcntElement.style.background = "rgb(34,255,0)";
+        } else {
+            price24hPcntElement.style.background = "rgb(253,253,253)";
+        }
+
+        maxprice24hElement.textContent = `Max for 24h: ${highPrice24h}`;
+        priceElement.textContent = `${lastPrice}$`;
+        price24hPcntElement.textContent = `${price24hPcnt}%`;
+    };
+
+    // Обработчик ошибки
+    socket.onerror = function(error) {
+        console.error('Ошибка WebSocket:', error);
+    };
+
+    // Обработчик закрытия соединения
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`Соединение закрыто чисто, код=${event.code}, причина=${event.reason}`);
+        } else {
+            console.error('Соединение прервано');
+        }
+    };
+</script>
+</body>
+</html>
