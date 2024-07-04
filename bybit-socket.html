@@ -114,7 +114,7 @@
 
         let lastPrice = response.data.lastPrice;
         let highPrice24h = response.data.highPrice24h;
-        let price24hPcnt = parseFloat(response.data.price24hPcnt).toFixed(2);
+        let price24hPcnt = (parseFloat(response.data.price24hPcnt) *100).toFixed(2);
 
         if(price24hPcnt < 0) {
             price24hPcntElement.style.background = "rgb(255,0,0)";
