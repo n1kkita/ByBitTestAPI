@@ -69,43 +69,110 @@
 <h1>Crypto Sensor</h1>
 <div id="main-container">
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 <script>
     // Создание WebSocket соединения
     const socket = new WebSocket('wss://stream.bybit.com/v5/public/spot');
-
-    const names = ["BTC", "NOT", "TON", "SOL", "PEPE", "DOGE", "ETH", "ZEX"];
+    const crypto = [
+        {
+            name: 'BTC',
+            time: [],
+            data: [],
+            chartId: 'tickers.BTCUSDT-chart',
+            element: null,
+            timer:null,
+        },
+        {
+            name: 'ETH',
+            time: [],
+            data: [],
+            chartId: 'tickers.ETHUSDT-chart',
+            element: null,
+            timer:null,
+        },
+        {
+            name: 'TON',
+            time: [],
+            data: [],
+            chartId: 'tickers.TONUSDT-chart',
+            element: null
+        },
+        {
+            name: 'NOT',
+            time: [],
+            data: [],
+            chartId: 'tickers.NOTUSDT-chart',
+            element: null
+        },
+        {
+            name: 'SOL',
+            time: [],
+            data: [],
+            chartId: 'tickers.SOLUSDT-chart',
+            element: null
+        },
+        {
+            name: 'DOGE',
+            time: [],
+            data: [],
+            chartId: 'tickers.DOGEUSDT-chart',
+            element: null
+        },
+        {
+            name: 'PEPE',
+            time: [],
+            data: [],
+            chartId: 'tickers.PEPEUSDT-chart',
+            element: null
+        }
+    ];
 
     socket.onopen = function(event) {
         console.log('WebSocket соединение установлено.');
 
-        names.forEach(name => {
+        crypto.forEach(crypto => {
             // Подписка на данные о криптовалюте
             const message = {
                 op: "subscribe",
-                args: [`tickers.${name}USDT`]
+                args: [`tickers.${crypto.name}USDT`]
             };
             let container = document.createElement("div");
             container.className = "crypto-card";
             container.innerHTML =
-                `<div id="tickers.${name}USDT">
+                `<div id="tickers.${crypto.name}USDT">
                  <input type="hidden" id="name">
-                 <h2 id="main-label">${name}/USDT</h2>
+                 <h2 id="main-label">${crypto.name}/USDT</h2>
                  <h3 class="maxprice24h">Max for 24h: price</h3>
                  <div class="price-container">
-                   <h3 id="second-label">${name}/USDT:</h3>
+                   <h3 id="second-label">${crypto.name}/USDT:</h3>
                    <h3 class="price"></h3>
                    <h4 class="price24hPcnt"></h4>
                  </div>
+                 <div style="display:flex; width: 105%">
+                    <canvas id="${crypto.chartId}"></canvas>
+                 </div>
                  </div>`;
+
+
+
             document.getElementById("main-container").appendChild(container);
+
             socket.send(JSON.stringify(message));
         });
     };
 
-    // Обработчик получения сообщения
+
+
     socket.onmessage = function(event) {
         const response = JSON.parse(event.data);
+
         let topic = response.topic;
+        const ctx = document.getElementById(`${topic}-chart`);
+        const foundCrypto = findCryptoElementById(`${topic}-chart`);
+
 
         let container = document.getElementById(topic);
         let maxprice24hElement = container.querySelector(".maxprice24h");
@@ -114,12 +181,12 @@
 
         let lastPrice = response.data.lastPrice;
         let highPrice24h = response.data.highPrice24h;
-        let price24hPcnt = (parseFloat(response.data.price24hPcnt) *100).toFixed(2);
+        let price24hPcnt = (parseFloat(response.data.price24hPcnt) * 100).toFixed(2);
 
-        if(price24hPcnt < 0) {
+        if (price24hPcnt < 0) {
             price24hPcntElement.style.background = "rgb(255,0,0)";
-        } else if(price24hPcnt > 0) {
-            price24hPcntElement.style.background = "rgb(34,255,0)";
+        } else if (price24hPcnt > 0) {
+            price24hPcntElement.style.background = "rgb(7,210,47)";
         } else {
             price24hPcntElement.style.background = "rgb(253,253,253)";
         }
@@ -127,14 +194,80 @@
         maxprice24hElement.textContent = `Max for 24h: ${highPrice24h}`;
         priceElement.textContent = `${lastPrice}$`;
         price24hPcntElement.textContent = `${price24hPcnt}%`;
-    };
 
-    // Обработчик ошибки
+
+        if (foundCrypto.element) {
+
+            if (foundCrypto.time.length > 5) {
+                foundCrypto.time.shift();
+                foundCrypto.data.shift();
+            }
+
+            if(foundCrypto.timer == null) {
+
+                foundCrypto.timer = setTimeout(() => {
+                    foundCrypto.time.push(convertTimestampToDate(response.ts));
+                    foundCrypto.data.push(lastPrice);
+
+                    foundCrypto.element.data.labels = foundCrypto.time;
+                    foundCrypto.element.data.datasets[0].data = foundCrypto.data;
+
+                    if (price24hPcnt < 0) {
+                        foundCrypto.element.data.datasets[0].borderColor = "rgba(255,0,0)";
+                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(255,0,0,0.1)";
+                    } else if (price24hPcnt > 0) {
+                        foundCrypto.element.data.datasets[0].borderColor = "rgb(2,252,53)";
+                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(0,255,48,0.1)";
+                    } else {
+                        foundCrypto.element.data.datasets[0].borderColor = "rgb(253,253,253)";
+                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(253,253,253,0.1)";
+                    }
+                    foundCrypto.timer = null;
+                    foundCrypto.element.update();
+                }, 1500);
+            }
+
+
+        } else {
+            foundCrypto.time.push(convertTimestampToDate(response.ts));
+            foundCrypto.data.push(lastPrice);
+
+            foundCrypto.element = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: foundCrypto.time,
+                    datasets: [{
+                        data:  foundCrypto.data,
+                        borderWidth: 2, // Толщина линии
+                        borderColor: 'rgba(75, 192, 192, 1)', // Цвет линии
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)', // Цвет фона под линией
+                        borderCapStyle: 'round', // Закругление концов линии
+                        borderJoinStyle: 'round', // Закругление углов линии
+                        tension: 0.4,
+                        fill:true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Убираем отображение легенды
+                        }
+                    }
+                }
+
+            });
+        }
+    }
+
     socket.onerror = function(error) {
         console.error('Ошибка WebSocket:', error);
     };
 
-    // Обработчик закрытия соединения
     socket.onclose = function(event) {
         if (event.wasClean) {
             console.log(`Соединение закрыто чисто, код=${event.code}, причина=${event.reason}`);
@@ -142,6 +275,31 @@
             console.error('Соединение прервано');
         }
     };
+    function convertTimestampToDate(timestamp) {
+        // Конвертируем временную метку в миллисекунды
+        const date = new Date(timestamp);
+
+        // Получаем компоненты даты и времени в киевском часовом поясе (UTC+3)
+        date.setUTCHours(date.getUTCHours() + 3);
+
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Месяцы идут от 0 до 11
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const hours = String(date.getUTCHours()).padStart(2, '0');
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+        // Форматируем дату и время в строку
+        return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function findCryptoElementById(chartId) {
+        return crypto.find(item => item.chartId === chartId);
+    }
+
+</script>
+<script>
+
 </script>
 </body>
 </html>
