@@ -25,15 +25,17 @@
         }
 
         .crypto-card {
-            background-color: rgb(211 211 211 / 11%);
+            background-image: linear-gradient(to bottom, white 0%, white 100%, rgb(236, 236, 236) 125%);
             margin: 10px;
             border-radius: 12px;
             padding: 20px;
             width: 100%;
             max-width: 420px;
             box-sizing: border-box;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Добавление тени */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
         }
+
 
         .crypto-card h2,
         .crypto-card h3,
@@ -127,6 +129,13 @@
             data: [],
             chartId: 'tickers.PEPEUSDT-chart',
             element: null
+        },
+        {
+            name: 'APRS',
+            time: [],
+            data: [],
+            chartId: 'tickers.APRSUSDT-chart',
+            element: null
         }
     ];
 
@@ -141,8 +150,9 @@
             };
             let container = document.createElement("div");
             container.className = "crypto-card";
+            container.id=`tickers.${crypto.name}USDT`;
             container.innerHTML =
-                `<div id="tickers.${crypto.name}USDT">
+                `
                  <input type="hidden" id="name">
                  <h2 id="main-label">${crypto.name}/USDT</h2>
                  <h3 class="maxprice24h">Max for 24h: price</h3>
@@ -154,7 +164,7 @@
                  <div style="display:flex; width: 105%">
                     <canvas id="${crypto.chartId}"></canvas>
                  </div>
-                 </div>`;
+                 `;
 
 
 
@@ -185,10 +195,15 @@
 
         if (price24hPcnt < 0) {
             price24hPcntElement.style.background = "rgb(255,0,0)";
+            container.style.backgroundImage=`linear-gradient(to bottom, white 0%, white 85%, rgba(215,56,56, 0.5) 120%)`;
         } else if (price24hPcnt > 0) {
             price24hPcntElement.style.background = "rgb(7,210,47)";
+
+            container.style.backgroundImage=`linear-gradient(to bottom, white 0%, white 85%, rgba(26, 255, 26, 0.5) 120%)`;
         } else {
             price24hPcntElement.style.background = "rgb(253,253,253)";
+
+            container.style.backgroundImage=`linear-gradient(to bottom, white 0%, white 85%, rgba(253,253,253, 0.5) 120%)`;
         }
 
         maxprice24hElement.textContent = `Max for 24h: ${highPrice24h}`;
@@ -198,19 +213,16 @@
 
         if (foundCrypto.element) {
 
-            if (foundCrypto.time.length > 5) {
-                foundCrypto.time.shift();
-                foundCrypto.data.shift();
+            if (foundCrypto.element.data.labels.length > 5) {
+                foundCrypto.element.data.labels.shift();
+                foundCrypto.element.data.datasets[0].data.shift();
             }
 
             if(foundCrypto.timer == null) {
 
                 foundCrypto.timer = setTimeout(() => {
-                    foundCrypto.time.push(convertTimestampToDate(response.ts));
-                    foundCrypto.data.push(lastPrice);
-
-                    foundCrypto.element.data.labels = foundCrypto.time;
-                    foundCrypto.element.data.datasets[0].data = foundCrypto.data;
+                    foundCrypto.element.data.labels.push(convertTimestampToDate(response.ts));
+                    foundCrypto.element.data.datasets[0].data.push(lastPrice);
 
                     if (price24hPcnt < 0) {
                         foundCrypto.element.data.datasets[0].borderColor = "rgba(255,0,0)";
@@ -229,15 +241,14 @@
 
 
         } else {
-            foundCrypto.time.push(convertTimestampToDate(response.ts));
-            foundCrypto.data.push(lastPrice);
+
 
             foundCrypto.element = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: foundCrypto.time,
+                    labels: [convertTimestampToDate(response.ts)],
                     datasets: [{
-                        data:  foundCrypto.data,
+                        data:  [lastPrice],
                         borderWidth: 2, // Толщина линии
                         borderColor: 'rgba(75, 192, 192, 1)', // Цвет линии
                         backgroundColor: 'rgba(75, 192, 192, 0.2)', // Цвет фона под линией
