@@ -75,15 +75,10 @@
             border-radius: 5px;
         }
         .emoji {
-            box-shadow: 0 0 0 0 white; /* Начальное состояние без обводки */
-            transition: box-shadow 0.3s ease-in-out; /* Переход для box-shadow */
+           transition: box-shadow 0.3s ease-in-out; /* Переход для box-shadow */
         }
 
         .emoji:hover {
-            box-shadow: 0 0 0 2px white; /* Обводка при наведении */
-            cursor: pointer;
-        }
-        .emoji:active {
             box-shadow: 0 0 0 2px white; /* Обводка при наведении */
             cursor: pointer;
         }
@@ -286,7 +281,19 @@
     });
 
     function toggleActiveClass(event) {
-        event.currentTarget.classList.toggle('active');
+        var emoji = event.currentTarget;
+
+        console.log("click!");
+        if(emoji.classList.contains("active")){
+            emoji.classList.remove("active");
+            emoji.style.boxShadow="0 0 0 2px #1e1e1e";
+            emoji.innerHTML = `<ion-icon name="star-outline"></ion-icon>`;
+        } else {
+            emoji.classList.add("active");
+            emoji.style.boxShadow="0 0 0 2px white";
+            emoji.innerHTML = `<ion-icon name="star"></ion-icon>`;
+        }
+        event.preventDefault(); // Отменяем стандартное действие, чтобы избежать двойного касания
     }
 
     socket.onmessage = function(event) {
