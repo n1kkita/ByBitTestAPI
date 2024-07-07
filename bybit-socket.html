@@ -72,6 +72,25 @@
             color: #fff;
             border-radius: 5px;
         }
+        .emoji {
+            box-shadow: 0 0 0 0 white; /* Начальное состояние без обводки */
+            transition: box-shadow 0.3s ease-in-out; /* Переход для box-shadow */
+        }
+
+        .emoji:hover {
+            box-shadow: 0 0 0 2px white; /* Обводка при наведении */
+            cursor: pointer;
+        }
+        .emoji:active {
+            box-shadow: 0 0 0 2px white; /* Обводка при наведении */
+            cursor: pointer;
+        }
+
+        .emoji.active {
+            box-shadow: 0 0 0 2px white; /* Обводка при клике */
+        }
+
+
 
         @media (max-width: 600px) {
             .crypto-card {
@@ -149,6 +168,7 @@
         }
         cryptoCards.forEach(cryptoCard=>{
             cryptoCard.style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%)`;
+            cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 50%, rgba(253,253,253, 0.4) 200%)`;
         })
     });
     // Создание WebSocket соединения
@@ -229,7 +249,14 @@
             container.innerHTML =
                 `
                  <input type="hidden" id="name">
+                 <div style="display: flex; justify-content: space-between;">
+                 <div>
                  <h2 id="main-label">${crypto.name}/USDT</h2>
+                 </div>
+                 <div class="emoji" onclick="emojiClick(this)" style="display:flex; justify-content: center; align-items:center; padding: 5px; background-image: linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%); border-radius: 50%;">
+                 📌
+                 </div>
+                 </div>
                  <h3 class="maxprice24h">Max for 24h: price</h3>
                  <div class="price-container">
                    <h3 id="second-label">${crypto.name}/USDT:</h3>
@@ -242,7 +269,6 @@
                  `;
 
 
-
             document.getElementById("main-container").appendChild(container);
 
             socket.send(JSON.stringify(message));
@@ -250,6 +276,13 @@
     };
 
 
+    function emojiClick(emoji){
+        if(emoji.classList.contains("active")){
+            emoji.classList.remove("active");
+        } else {
+            emoji.classList.add("active");
+        }
+    }
 
     socket.onmessage = function(event) {
         const response = JSON.parse(event.data);
@@ -381,9 +414,6 @@
     function findCryptoElementById(chartId) {
         return crypto.find(item => item.chartId === chartId);
     }
-
-</script>
-<script>
 
 </script>
 </body>
