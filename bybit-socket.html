@@ -37,14 +37,18 @@
             font-size: 2rem;
         }
 
-        #main-container {
+        #main-container, #main-container-stars {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 20px;
             padding: 10px;
         }
-
+        .container-crypto-card {
+            width: 100%;
+            box-sizing: border-box;
+            max-width: 420px;
+        }
         .crypto-card {
             background-color: var(--card-background);
             margin: 10px;
@@ -82,11 +86,6 @@
             box-shadow: 0 0 0 2px white; /* Обводка при наведении */
             cursor: pointer;
         }
-
-        .emoji.active {
-            box-shadow: 0 0 0 2px white; /* Обводка при клике */
-        }
-
 
 
         @media (max-width: 600px) {
@@ -142,6 +141,7 @@
        c-6.337-2.108-11.473-6.557-14.463-12.528C11.899,15.541,11.11,10.16,12.002,4.936z"></path></svg>
     </label>
 </div>
+<div id="main-container-stars" style=""></div>
 <div id="main-container">
 </div>
 
@@ -152,6 +152,9 @@
         mode:'light',
         color:'white'
     }
+    let mainContainer = document.getElementById("main-container");
+    let mainContainerStars = document.getElementById("main-container-stars");
+
     document.getElementById('theme-toggle').addEventListener('change', function() {
         document.body.classList.toggle('dark-mode', this.checked);
         let cryptoCards = document.querySelectorAll(".crypto-card");
@@ -165,13 +168,15 @@
         }
         cryptoCards.forEach(cryptoCard=>{
             cryptoCard.style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%)`;
-            cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 50%, rgba(253,253,253, 0.4) 200%)`;
+            cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom, '#1e1e1e' 0%,  #ffffff 50%, rgba(253,253,253, 0.4) 200%)`;
         })
     });
     // Создание WebSocket соединения
     const socket = new WebSocket('wss://stream.bybit.com/v5/public/spot');
     const crypto = [
         {
+            id:1,
+            oldId:1,
             name: 'BTC',
             time: [],
             data: [],
@@ -180,6 +185,8 @@
             timer:null,
         },
         {
+            id:2,
+            oldId:2,
             name: 'ETH',
             time: [],
             data: [],
@@ -188,6 +195,8 @@
             timer:null,
         },
         {
+            id:3,
+            oldId:3,
             name: 'TON',
             time: [],
             data: [],
@@ -195,6 +204,8 @@
             element: null
         },
         {
+            id:4,
+            oldId:4,
             name: 'NOT',
             time: [],
             data: [],
@@ -202,6 +213,8 @@
             element: null
         },
         {
+            id:5,
+            oldId:5,
             name: 'SOL',
             time: [],
             data: [],
@@ -209,6 +222,8 @@
             element: null
         },
         {
+            id:6,
+            oldId:6,
             name: 'DOGE',
             time: [],
             data: [],
@@ -216,6 +231,8 @@
             element: null
         },
         {
+            id:7,
+            oldId:7,
             name: 'PEPE',
             time: [],
             data: [],
@@ -223,6 +240,8 @@
             element: null
         },
         {
+            id:8,
+            oldId:8,
             name: 'APRS',
             time: [],
             data: [],
@@ -241,16 +260,17 @@
                 args: [`tickers.${crypto.name}USDT`]
             };
             let container = document.createElement("div");
-            container.className = "crypto-card";
-            container.id=`tickers.${crypto.name}USDT`;
+
+            container.id=`${crypto.name}`;
+            container.className=`container-crypto-card`;
             container.innerHTML =
-                `
+                `<div id="tickers.${crypto.name}USDT" class="crypto-card">
                  <input type="hidden" id="name">
                  <div style="display: flex; justify-content: space-between;">
                  <div>
                  <h2 id="main-label">${crypto.name}/USDT</h2>
                  </div>
-                 <div class="emoji" onclick="toggleActiveClass(event)" style="display:flex; justify-content: center; align-items:center; padding: 0 5px;border-radius: 40%; background-image: linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%); ">
+                 <div class="emoji" onclick="toggleActiveClass(event, '${crypto.name}')" style="display:flex; justify-content: center; align-items:center; padding: 0 5px;border-radius: 40%; background-image: linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%); ">
                  <ion-icon name="star-outline"></ion-icon>
                  </div>
                  </div>
@@ -263,10 +283,14 @@
                  <div style="display:flex; width: 105%">
                     <canvas id="${crypto.chartId}"></canvas>
                  </div>
-                 `;
+                 </div>`;
 
 
-            document.getElementById("main-container").appendChild(container);
+            let containerStars = document.createElement("div");
+            containerStars.id=`${crypto.name}-stars`;
+
+            mainContainer.appendChild(container);
+            mainContainerStars.appendChild(containerStars);
 
             socket.send(JSON.stringify(message));
         });
@@ -280,18 +304,30 @@
         });
     });
 
-    function toggleActiveClass(event) {
+    function toggleActiveClass(event,cryptoName) {
         var emoji = event.currentTarget;
+        let data = document.getElementById(`tickers.${cryptoName}USDT`);
 
-        console.log("click!");
+        let containerHTML = document.getElementById(`${cryptoName}`)
+        let containerHTMlStars = document.getElementById(`${cryptoName}-stars`);
+
+
         if(emoji.classList.contains("active")){
             emoji.classList.remove("active");
-            emoji.style.boxShadow="0 0 0 2px #1e1e1e";
             emoji.innerHTML = `<ion-icon name="star-outline"></ion-icon>`;
+
+            containerHTMlStars.removeChild(data)
+            containerHTML.appendChild(data);
+
+            containerHTML.style.width=`100%`;
+
         } else {
             emoji.classList.add("active");
-            emoji.style.boxShadow="0 0 0 2px white";
             emoji.innerHTML = `<ion-icon name="star"></ion-icon>`;
+
+            containerHTML.removeChild(data)
+            containerHTML.style.width=`0`;
+            containerHTMlStars.prepend(data);
         }
         event.preventDefault(); // Отменяем стандартное действие, чтобы избежать двойного касания
     }
@@ -306,91 +342,96 @@
 
 
         let container = document.getElementById(topic);
-        let maxprice24hElement = container.querySelector(".maxprice24h");
-        let priceElement = container.querySelector(".price");
-        let price24hPcntElement = container.querySelector(".price24hPcnt");
+        if(container !== null) {
+            if (container.innerHTML === '') {
+                container = document.getElementById(`${topic}-stars`);
+                foundCrypto.element.update();
+            }
+            let maxprice24hElement = container.querySelector(".maxprice24h");
+            let priceElement = container.querySelector(".price");
+            let price24hPcntElement = container.querySelector(".price24hPcnt");
 
-        let lastPrice = response.data.lastPrice;
-        let highPrice24h = response.data.highPrice24h;
-        let price24hPcnt = (parseFloat(response.data.price24hPcnt) * 100).toFixed(2);
+            let lastPrice = response.data.lastPrice;
+            let highPrice24h = response.data.highPrice24h;
+            let price24hPcnt = (parseFloat(response.data.price24hPcnt) * 100).toFixed(2);
 
-        if (price24hPcnt < 0) {
-            price24hPcntElement.style.background = "rgb(255,0,0)";
+            if (price24hPcnt < 0) {
+                price24hPcntElement.style.background = "rgb(255,0,0)";
 
-        } else if (price24hPcnt > 0) {
-            price24hPcntElement.style.background = "rgb(7,210,47)";
+            } else if (price24hPcnt > 0) {
+                price24hPcntElement.style.background = "rgb(7,210,47)";
 
-        } else {
-            price24hPcntElement.style.background = "rgb(253,253,253)";
+            } else {
+                price24hPcntElement.style.background = "rgb(253,253,253)";
 
-        }
-
-        maxprice24hElement.textContent = `Max for 24h: ${highPrice24h}`;
-        priceElement.textContent = `${lastPrice}$`;
-        price24hPcntElement.textContent = `${price24hPcnt}%`;
-
-
-        if (foundCrypto.element) {
-
-            if (foundCrypto.element.data.labels.length > 5) {
-                foundCrypto.element.data.labels.shift();
-                foundCrypto.element.data.datasets[0].data.shift();
             }
 
-            if(foundCrypto.timer == null) {
+            maxprice24hElement.textContent = `Max for 24h: ${highPrice24h}`;
+            priceElement.textContent = `${lastPrice}$`;
+            price24hPcntElement.textContent = `${price24hPcnt}%`;
 
-                foundCrypto.timer = setTimeout(() => {
-                    foundCrypto.element.data.labels.push(convertTimestampToDate(response.ts));
-                    foundCrypto.element.data.datasets[0].data.push(lastPrice);
+            if (foundCrypto.element !== null) {
 
-                    if (price24hPcnt < 0) {
-                        foundCrypto.element.data.datasets[0].borderColor = "rgba(255,0,0)";
-                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(255,0,0,0.1)";
-                    } else if (price24hPcnt > 0) {
-                        foundCrypto.element.data.datasets[0].borderColor = "rgb(2,252,53)";
-                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(0,255,48,0.1)";
-                    } else {
-                        foundCrypto.element.data.datasets[0].borderColor = "rgb(253,253,253)";
-                        foundCrypto.element.data.datasets[0].backgroundColor = "rgba(253,253,253,0.1)";
-                    }
-                    foundCrypto.timer = null;
-                    foundCrypto.element.update();
-                }, 1500);
-            }
-
-
-        } else {
-
-
-            foundCrypto.element = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [convertTimestampToDate(response.ts)],
-                    datasets: [{
-                        data:  [lastPrice],
-                        borderWidth: 2, // Толщина линии
-                        borderColor: 'rgba(75, 192, 192, 1)', // Цвет линии
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)', // Цвет фона под линией
-                        borderCapStyle: 'round', // Закругление концов линии
-                        borderJoinStyle: 'round', // Закругление углов линии
-                        tension: 0.4,
-                        fill:true
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false // Убираем отображение легенды
-                        }
-                    }
+                if (foundCrypto.element.data.labels.length > 5) {
+                    foundCrypto.element.data.labels.shift();
+                    foundCrypto.element.data.datasets[0].data.shift();
                 }
 
-            });
+                if (foundCrypto.timer == null) {
+
+                    foundCrypto.timer = setTimeout(() => {
+                        foundCrypto.element.data.labels.push(convertTimestampToDate(response.ts));
+                        foundCrypto.element.data.datasets[0].data.push(lastPrice);
+
+                        if (price24hPcnt < 0) {
+                            foundCrypto.element.data.datasets[0].borderColor = "rgba(255,0,0)";
+                            foundCrypto.element.data.datasets[0].backgroundColor = "rgba(255,0,0,0.1)";
+                        } else if (price24hPcnt > 0) {
+                            foundCrypto.element.data.datasets[0].borderColor = "rgb(2,252,53)";
+                            foundCrypto.element.data.datasets[0].backgroundColor = "rgba(0,255,48,0.1)";
+                        } else {
+                            foundCrypto.element.data.datasets[0].borderColor = "rgb(253,253,253)";
+                            foundCrypto.element.data.datasets[0].backgroundColor = "rgba(253,253,253,0.1)";
+                        }
+                        foundCrypto.timer = null;
+                        foundCrypto.element.update();
+                    }, 1500);
+                }
+
+
+            } else {
+
+
+                foundCrypto.element = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [convertTimestampToDate(response.ts)],
+                        datasets: [{
+                            data: [lastPrice],
+                            borderWidth: 2, // Толщина линии
+                            borderColor: 'rgba(75, 192, 192, 1)', // Цвет линии
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)', // Цвет фона под линией
+                            borderCapStyle: 'round', // Закругление концов линии
+                            borderJoinStyle: 'round', // Закругление углов линии
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false // Убираем отображение легенды
+                            }
+                        }
+                    }
+
+                });
+            }
         }
     }
 
@@ -426,6 +467,10 @@
     function findCryptoElementById(chartId) {
         return crypto.find(item => item.chartId === chartId);
     }
+    function findCryptoElementByName(name) {
+        return crypto.find(item => item.name === name);
+    }
+
 
 </script>
 </body>
