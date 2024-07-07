@@ -168,7 +168,7 @@
         }
         cryptoCards.forEach(cryptoCard=>{
             cryptoCard.style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%)`;
-            cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom, '#1e1e1e' 0%,  #ffffff 50%, rgba(253,253,253, 0.4) 200%)`;
+            cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom, ${theme.color} 0%, ${theme.color} 50%, rgba(253,253,253, 0.2) 200%)`;
         })
     });
     // Создание WebSocket соединения
