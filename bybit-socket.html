@@ -148,6 +148,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+
+
     let theme = {
         mode:'light',
         color:'white'
@@ -155,22 +157,31 @@
     let mainContainer = document.getElementById("main-container");
     let mainContainerStars = document.getElementById("main-container-stars");
 
-    document.getElementById('theme-toggle').addEventListener('change', function() {
+    document.getElementById('theme-toggle').addEventListener('change', changeTheme);
+    function changeTheme() {
         document.body.classList.toggle('dark-mode', this.checked);
         let cryptoCards = document.querySelectorAll(".crypto-card");
 
         if(theme.mode === `light`){
             theme.mode = `black`;
             theme.color= '#1e1e1e';
+            localStorage.setItem("theme","black");
         } else {
             theme.mode = `light`;
             theme.color = `#ffffff`;
+            localStorage.setItem("theme","light");
         }
         cryptoCards.forEach(cryptoCard=>{
             cryptoCard.style.backgroundImage = `linear-gradient(to bottom,  ${theme.color} 0%,  ${theme.color} 75%, rgba(253,253,253, 0.1) 145%)`;
             cryptoCard.querySelector(".emoji").style.backgroundImage = `linear-gradient(to bottom, ${theme.color} 0%, ${theme.color} 50%, rgba(253,253,253, 0.2) 200%)`;
-        })
-    });
+        });
+    }
+    let themeLocalStorage = localStorage.getItem("theme");
+
+    if(themeLocalStorage !== null && themeLocalStorage === "black"){
+        document.getElementById("darkmode-toggle").checked=true;
+        changeTheme();
+    }
     // Создание WebSocket соединения
     const socket = new WebSocket('wss://stream.bybit.com/v5/public/spot');
     const crypto = [
@@ -251,8 +262,6 @@
     ];
 
     socket.onopen = function(event) {
-        console.log('WebSocket соединение установлено.');
-
         crypto.forEach(crypto => {
             // Подписка на данные о криптовалюте
             const message = {
