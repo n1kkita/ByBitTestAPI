@@ -289,10 +289,15 @@
             let containerStars = document.createElement("div");
             containerStars.id=`${crypto.name}-stars`;
 
+
             mainContainer.appendChild(container);
             mainContainerStars.appendChild(containerStars);
 
             socket.send(JSON.stringify(message));
+
+            if(localStorage.getItem(`${crypto.name}-stars`) === "true"){
+                container.querySelector(".emoji").click();
+            }
         });
     };
 
@@ -316,9 +321,11 @@
             emoji.classList.remove("active");
             emoji.innerHTML = `<ion-icon name="star-outline"></ion-icon>`;
 
-            containerHTMlStars.removeChild(data)
-            containerHTML.appendChild(data);
 
+            containerHTMlStars.className="";
+            containerHTMlStars.removeChild(data);
+            containerHTML.appendChild(data);
+            localStorage.setItem(`${cryptoName}-stars`,"false");
             containerHTML.style.width=`100%`;
 
         } else {
@@ -327,7 +334,9 @@
 
             containerHTML.removeChild(data)
             containerHTML.style.width=`0`;
+            containerHTMlStars.className="container-crypto-card";
             containerHTMlStars.prepend(data);
+            localStorage.setItem(`${cryptoName}-stars`,"true");
         }
         event.preventDefault(); // Отменяем стандартное действие, чтобы избежать двойного касания
     }
