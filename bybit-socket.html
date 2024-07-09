@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <title>Crypto Sensor</title>
+    <title id="title">Crypto Sensor</title>
     <style>
         :root {
             --background-color: white;
@@ -186,82 +186,48 @@
     const socket = new WebSocket('wss://stream.bybit.com/v5/public/spot');
     const crypto = [
         {
-            id:1,
-            oldId:1,
             name: 'BTC',
-            time: [],
-            data: [],
             chartId: 'tickers.BTCUSDT-chart',
             element: null,
-            timer:null,
         },
         {
-            id:2,
-            oldId:2,
             name: 'ETH',
-            time: [],
-            data: [],
             chartId: 'tickers.ETHUSDT-chart',
             element: null,
-            timer:null,
         },
         {
-            id:3,
-            oldId:3,
             name: 'TON',
-            time: [],
-            data: [],
             chartId: 'tickers.TONUSDT-chart',
             element: null
         },
         {
-            id:4,
-            oldId:4,
             name: 'NOT',
-            time: [],
-            data: [],
             chartId: 'tickers.NOTUSDT-chart',
             element: null
         },
         {
-            id:5,
-            oldId:5,
             name: 'SOL',
-            time: [],
-            data: [],
             chartId: 'tickers.SOLUSDT-chart',
             element: null
         },
         {
-            id:6,
-            oldId:6,
             name: 'DOGE',
-            time: [],
-            data: [],
             chartId: 'tickers.DOGEUSDT-chart',
             element: null
         },
         {
-            id:7,
-            oldId:7,
             name: 'PEPE',
-            time: [],
-            data: [],
             chartId: 'tickers.PEPEUSDT-chart',
             element: null
         },
         {
-            id:8,
-            oldId:8,
             name: 'APRS',
-            time: [],
-            data: [],
             chartId: 'tickers.APRSUSDT-chart',
             element: null
         }
     ];
 
-    socket.onopen = function(event) {
+    socket.onopen = function() {
         crypto.forEach(crypto => {
             // Подписка на данные о криптовалюте
             const message = {
